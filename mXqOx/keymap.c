@@ -11,13 +11,13 @@ enum custom_keycodes {
 
 
 
-#define DUAL_FUNC_0 LT(5, KC_F1)
+#define DUAL_FUNC_0 LT(3, KC_Q)
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [0] = LAYOUT_moonlander(
     KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,                                          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          
     KC_NO,          KC_V,           KC_M,           KC_L,           KC_C,           KC_P,           KC_NO,                                          KC_NO,          KC_B,           KC_NO,          KC_U,           KC_O,           KC_Q,           KC_NO,          
-    KC_NO,          KC_S,           KC_T,           KC_R,           KC_D,           KC_Y,           KC_HYPR,                                                                        KC_NO,          KC_F,           KC_N,           KC_E,           KC_A,           KC_I,           KC_NO,          
+    KC_NO,          KC_S,           KC_T,           KC_R,           KC_D,           KC_Y,           KC_NO,                                                                          KC_NO,          KC_F,           KC_N,           KC_E,           KC_A,           KC_I,           KC_NO,          
     KC_NO,          MT(MOD_LGUI, KC_X),MT(MOD_LALT, KC_K),MT(MOD_LCTL, KC_J),MT(MOD_LSFT, KC_G),KC_W,                                           KC_Z,           MT(MOD_LSFT, KC_H),MT(MOD_LCTL, KC_COMMA),MT(MOD_LALT, KC_DOT),MT(MOD_LGUI, KC_QUOTE),KC_NO,          
     KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,                                                                                                          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          
     DUAL_FUNC_0,    LT(2, KC_SPACE),LT(3, KC_TAB),                  KC_NO,          MT(MOD_LSFT, KC_BSPC),KC_NO
