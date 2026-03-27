@@ -13,6 +13,7 @@ enum custom_keycodes {
 
 
 #define DUAL_FUNC_0 LT(3, KC_Q)
+#define DUAL_FUNC_1 MT(MOD_RALT, KC_Q)
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [0] = LAYOUT_moonlander(
@@ -21,7 +22,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     KC_NO,          KC_S,           KC_T,           KC_R,           KC_D,           KC_Y,           KC_NO,                                                                        KC_NO,          KC_F,           KC_N,           KC_E,           KC_A,           KC_I,           KC_NO,          
     KC_NO,          MT(MOD_LGUI, KC_X),MT(MOD_LALT, KC_K),MT(MOD_LCTL, KC_J),MT(MOD_LSFT, KC_G),KC_W,                                           KC_Z,           MT(MOD_LSFT, KC_H),MT(MOD_LCTL, KC_COMMA),MT(MOD_LALT, KC_DOT),MT(MOD_LGUI, KC_QUOTE),KC_NO,          
     KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,                                                                                                          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          
-    DUAL_FUNC_0,    LT(2, KC_SPACE),LT(3, KC_TAB),                  QK_AREP2,          MT(MOD_LSFT, KC_BSPC),QK_REP
+    DUAL_FUNC_0,    LT(2, KC_SPACE),LT(3, KC_TAB),                  QK_AREP2,          MT(MOD_LSFT, KC_BSPC),DUAL_FUNC_1
   ),
   [1] = LAYOUT_moonlander(
     KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,                                          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          
@@ -111,7 +112,6 @@ uint16_t get_alt_repeat_key_keycode_user(uint16_t keycode, uint8_t mods) {
         case KC_G: return KC_Y;
         case KC_W: return KC_D;
         case KC_TILD: return KC_SLSH;
-        case KC_DOT: SEND_STRING(/*.*/"./"); break;
     }
 
     return KC_NO;
@@ -157,6 +157,21 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
           layer_off(1);
         }  
       }  
+      return false;
+    case DUAL_FUNC_1:
+      if (record->tap.count > 0) {
+        if (record->event.pressed) {
+          register_code16(QK_REP);
+        } else {
+          unregister_code16(QK_REP);
+        }
+      } else {
+        if (record->event.pressed) {
+          add_mods(MOD_BIT(KC_RALT));
+        } else {
+          del_mods(MOD_BIT(KC_RALT));
+        }
+      }
       return false;
     case RGB_SLD:
         if (rawhid_state.rgb_control) {
