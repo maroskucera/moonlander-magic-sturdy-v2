@@ -7,6 +7,7 @@
 
 enum custom_keycodes {
   RGB_SLD = ZSA_SAFE_RANGE,
+  QK_AREP2,
 };
 
 
@@ -16,11 +17,11 @@ enum custom_keycodes {
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [0] = LAYOUT_moonlander(
     KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,                                          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          
-    KC_NO,          KC_V,           KC_M,           KC_L,           KC_C,           KC_P,           KC_NO,                                          KC_NO,          KC_B,           KC_NO,          KC_U,           KC_O,           KC_Q,           KC_NO,          
+    KC_NO,          KC_V,           KC_M,           KC_L,           KC_C,           KC_P,           KC_NO,                                          KC_NO,          KC_B,           QK_AREP,          KC_U,           KC_O,           KC_Q,           KC_NO,          
     KC_NO,          KC_S,           KC_T,           KC_R,           KC_D,           KC_Y,           KC_HYPR,                                                                        KC_NO,          KC_F,           KC_N,           KC_E,           KC_A,           KC_I,           KC_NO,          
     KC_NO,          MT(MOD_LGUI, KC_X),MT(MOD_LALT, KC_K),MT(MOD_LCTL, KC_J),MT(MOD_LSFT, KC_G),KC_W,                                           KC_Z,           MT(MOD_LSFT, KC_H),MT(MOD_LCTL, KC_COMMA),MT(MOD_LALT, KC_DOT),MT(MOD_LGUI, KC_QUOTE),KC_NO,          
     KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,                                                                                                          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          
-    DUAL_FUNC_0,    LT(2, KC_SPACE),LT(3, KC_TAB),                  KC_NO,          MT(MOD_LSFT, KC_BSPC),KC_NO
+    DUAL_FUNC_0,    LT(2, KC_SPACE),LT(3, KC_TAB),                  QK_AREP2,          MT(MOD_LSFT, KC_BSPC),QK_REP
   ),
   [1] = LAYOUT_moonlander(
     KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,                                          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          
@@ -40,7 +41,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   ),
   [3] = LAYOUT_moonlander(
     KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,                                          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          
-    KC_NO,          KC_Q,           KC_O,           KC_U,           KC_NO,          KC_B,           KC_NO,                                          KC_NO,          KC_INSERT,      KC_CAPS,        KC_NUM,         KC_SCRL,        KC_PAUSE,       KC_NO,          
+    KC_NO,          KC_Q,           KC_O,           KC_U,           QK_AREP,          KC_B,           KC_NO,                                          KC_NO,          KC_INSERT,      KC_CAPS,        KC_NUM,         KC_SCRL,        KC_PAUSE,       KC_NO,          
     KC_NO,          KC_I,           KC_A,           KC_E,           KC_N,           KC_F,           KC_NO,                                                                          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          
     KC_NO,          MT(MOD_LGUI, KC_QUOTE),MT(MOD_LALT, KC_DOT),MT(MOD_LCTL, KC_COMMA),MT(MOD_LSFT, KC_H),KC_Z,                                           EE_CLR,         KC_NO,          KC_NO,          KC_NO,          QK_BOOT,        KC_NO,          
     KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,                                                                                                          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          
@@ -79,6 +80,66 @@ combo_t key_combos[COMBO_COUNT] = {
 
 
 
+bool remember_last_key_user(uint16_t keycode, keyrecord_t* record,
+                            uint8_t* remembered_mods) {
+    switch (keycode) {
+        case QK_AREP2:
+            return false;  // Ignore AREP key.
+    }
+
+    return true;  // Other keys can be repeated.
+}
+
+uint16_t get_alt_repeat_key_keycode_user(uint16_t keycode, uint8_t mods) {
+    switch (keycode) {
+        case KC_V: return KC_K;
+        case KC_L: return KC_K;
+        case KC_C: return KC_K;
+        case KC_P: return KC_Y;
+        case KC_U: return KC_E;
+        case KC_O: return KC_A;
+        case KC_Q: return KC_I;
+        case KC_S: return KC_K;
+        case KC_T: return KC_V;
+        case KC_R: return KC_K;
+        case KC_D: return KC_Y;
+        case KC_Y: return KC_P;
+        case KC_E: return KC_U;
+        case KC_A: return KC_O;
+        case KC_K: return KC_S;
+        case KC_J: return KC_M;
+        case KC_G: return KC_Y;
+        case KC_W: return KC_D;
+        case KC_TILD: return KC_SLSH;
+        case KC_DOT: SEND_STRING(/*.*/"./"); break;
+    }
+
+    return KC_NO;
+}
+
+static uint16_t process_arep2(uint16_t keycode, uint8_t mods) {
+    switch (keycode) {
+        case KC_L: return KC_R;
+        case KC_C: return KC_Y;
+        case KC_P: return KC_D;
+        case KC_T: return KC_K;
+        case KC_R: return KC_L;
+        case KC_D: return KC_G;
+        case KC_F: return KC_N;
+        case KC_N: return KC_F;
+        case KC_G: return KC_D;
+        case KC_W: return KC_Y;
+    }
+
+    return KC_NO;
+}
+
+
+
+
+
+
+
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   switch (keycode) {
 
@@ -105,7 +166,12 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             rgblight_mode(1);
         }
         return false;
+    case QK_AREP2:
+        if (record->event.pressed) {
+            tap_code16(process_arep2(get_last_keycode(), get_last_mods()));
+        }
+        return false;
+
   }
   return true;
 }
-
