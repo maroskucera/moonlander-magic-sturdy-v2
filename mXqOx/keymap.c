@@ -8,12 +8,12 @@
 enum custom_keycodes {
   RGB_SLD = ZSA_SAFE_RANGE,
   QK_AREP2,
+  REP_RAL,  // tap = repeat (QK_REP), hold = RAlt
 };
 
 
 
 #define DUAL_FUNC_0 LT(3, KC_Q)
-#define DUAL_FUNC_1 MT(MOD_RALT, KC_Q)
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [0] = LAYOUT_moonlander(
@@ -22,7 +22,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     KC_NO,          KC_S,           KC_T,           KC_R,           KC_D,           KC_Y,           KC_NO,                                                                        KC_NO,          KC_F,           KC_N,           KC_E,           KC_A,           KC_I,           KC_NO,          
     KC_NO,          MT(MOD_LGUI, KC_X),MT(MOD_LALT, KC_K),MT(MOD_LCTL, KC_J),MT(MOD_LSFT, KC_G),KC_W,                                           KC_Z,           MT(MOD_LSFT, KC_H),MT(MOD_LCTL, KC_COMMA),MT(MOD_LALT, KC_DOT),MT(MOD_LGUI, KC_QUOTE),KC_NO,          
     KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,                                                                                                          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          
-    DUAL_FUNC_0,    LT(2, KC_SPACE),LT(3, KC_TAB),                  QK_AREP2,          MT(MOD_LSFT, KC_BSPC),DUAL_FUNC_1
+    DUAL_FUNC_0,    LT(2, KC_SPACE),LT(3, KC_TAB),                  QK_AREP2,       MT(MOD_LSFT, KC_BSPC),REP_RAL
   ),
   [1] = LAYOUT_moonlander(
     KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,                                          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          
@@ -85,7 +85,8 @@ bool remember_last_key_user(uint16_t keycode, keyrecord_t* record,
                             uint8_t* remembered_mods) {
     switch (keycode) {
         case QK_AREP2:
-            return false;  // Ignore AREP key.
+        case REP_RAL:
+            return false;  // Ignore repeat keys.
     }
 
     return true;  // Other keys can be repeated.
@@ -135,10 +136,15 @@ static uint16_t process_arep2(uint16_t keycode, uint8_t mods) {
 }
 
 
+static uint16_t rep_ral_timer = 0;
+static bool rep_ral_held = false;
 
-
-
-
+void matrix_scan_user(void) {
+    if (rep_ral_held && timer_elapsed(rep_ral_timer) >= TAPPING_TERM) {
+        register_mods(MOD_BIT(KC_RALT));
+        rep_ral_held = false;
+    }
+}
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   switch (keycode) {
@@ -155,21 +161,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
           layer_on(1);
         } else {
           layer_off(1);
-        }  
-      }  
-      return false;
-    case DUAL_FUNC_1:
-      if (record->tap.count > 0) {
-        if (record->event.pressed) {
-          register_code16(QK_REP);
-        } else {
-          unregister_code16(QK_REP);
-        }
-      } else {
-        if (record->event.pressed) {
-          add_mods(MOD_BIT(KC_RALT));
-        } else {
-          del_mods(MOD_BIT(KC_RALT));
         }
       }
       return false;
@@ -181,6 +172,24 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             rgblight_mode(1);
         }
         return false;
+    case REP_RAL:
+      if (record->event.pressed) {
+          rep_ral_timer = timer_read();
+          rep_ral_held = true;
+      } else {
+          rep_ral_held = false;
+          if (timer_elapsed(rep_ral_timer) < TAPPING_TERM) {
+              // Tap: fire repeat
+              uint8_t last_mods = get_last_mods();
+              register_mods(last_mods);
+              tap_code16(get_last_keycode());
+              unregister_mods(last_mods);
+          } else {
+              // Hold released: deactivate RAlt
+              unregister_mods(MOD_BIT(KC_RALT));
+          }
+      }
+      return false;
     case QK_AREP2:
         if (record->event.pressed) {
             tap_code16(process_arep2(get_last_keycode(), get_last_mods()));
@@ -190,3 +199,4 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   }
   return true;
 }
+
