@@ -137,16 +137,24 @@ static uint16_t process_arep2(uint16_t keycode, uint8_t mods) {
 
 
 static uint16_t rep_ral_timer = 0;
-static bool rep_ral_held = false;
+static bool rep_ral_pending = false;
+static bool rep_ral_committed = false;
 
 void matrix_scan_user(void) {
-    if (rep_ral_held && timer_elapsed(rep_ral_timer) >= TAPPING_TERM) {
+    if (rep_ral_pending && timer_elapsed(rep_ral_timer) >= TAPPING_TERM) {
         register_mods(MOD_BIT(KC_RALT));
-        rep_ral_held = false;
+        rep_ral_committed = true;
+        rep_ral_pending = false;
     }
 }
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+  if (rep_ral_pending && record->event.pressed && keycode != REP_RAL) {
+      register_mods(MOD_BIT(KC_RALT));
+      rep_ral_committed = true;
+      rep_ral_pending = false;
+  }
+
   switch (keycode) {
 
     case DUAL_FUNC_0:
@@ -174,20 +182,23 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         return false;
     case REP_RAL:
       if (record->event.pressed) {
+          if (rep_ral_committed) {
+              unregister_mods(MOD_BIT(KC_RALT));
+          }
           rep_ral_timer = timer_read();
-          rep_ral_held = true;
+          rep_ral_pending = true;
+          rep_ral_committed = false;
       } else {
-          rep_ral_held = false;
-          if (timer_elapsed(rep_ral_timer) < TAPPING_TERM) {
-              // Tap: fire repeat
+          if (rep_ral_committed) {
+              unregister_mods(MOD_BIT(KC_RALT));
+              rep_ral_committed = false;
+          } else if (rep_ral_pending && timer_elapsed(rep_ral_timer) < TAPPING_TERM) {
               uint8_t last_mods = get_last_mods();
               register_mods(last_mods);
               tap_code16(get_last_keycode());
               unregister_mods(last_mods);
-          } else {
-              // Hold released: deactivate RAlt
-              unregister_mods(MOD_BIT(KC_RALT));
           }
+          rep_ral_pending = false;
       }
       return false;
     case QK_AREP2:
