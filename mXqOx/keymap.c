@@ -11,7 +11,7 @@ enum custom_keycodes {
 
 
 
-#define DUAL_FUNC_0 LT(3, KC_Q)
+#define DUAL_FUNC_0 LT(14, KC_F24)
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [0] = LAYOUT_moonlander(
@@ -41,7 +41,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [3] = LAYOUT_moonlander(
     KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,                                          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          
     KC_NO,          KC_Q,           KC_O,           KC_U,           KC_NO,          KC_B,           KC_NO,                                          KC_NO,          KC_INSERT,      KC_CAPS,        KC_NUM,         KC_SCRL,        KC_PAUSE,       KC_NO,          
-    KC_NO,          KC_I,           KC_A,           KC_E,           KC_N,           KC_F,           KC_NO,                                                                          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          
+    KC_NO,          KC_I,           KC_A,           KC_E,           KC_N,           KC_F,           KC_NO,                                                                          KC_NO,          KC_AUDIO_VOL_UP,KC_AUDIO_VOL_DOWN,KC_MEDIA_PLAY_PAUSE,KC_MEDIA_PREV_TRACK,KC_MEDIA_NEXT_TRACK,KC_NO,          
     KC_NO,          MT(MOD_LGUI, KC_QUOTE),MT(MOD_LALT, KC_DOT),MT(MOD_LCTL, KC_COMMA),MT(MOD_LSFT, KC_H),KC_Z,                                           EE_CLR,         KC_NO,          KC_NO,          KC_NO,          QK_BOOT,        KC_NO,          
     KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,                                                                                                          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          
     KC_NO,          KC_NO,          KC_TRANSPARENT,                 KC_NO,          KC_NO,          KC_NO
@@ -81,6 +81,22 @@ combo_t key_combos[COMBO_COUNT] = {
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   switch (keycode) {
+  case QK_MODS ... QK_MODS_MAX:
+    // Mouse and consumer keys (volume, media) with modifiers work inconsistently across operating systems,
+    // this makes sure that modifiers are always applied to the key that was pressed.
+    if (IS_CONSUMER_KEYCODE(QK_MODS_GET_BASIC_KEYCODE(keycode))) {
+      if (record->event.pressed) {
+        add_mods(QK_MODS_GET_MODS(keycode));
+        send_keyboard_report();
+        wait_ms(2);
+        register_code(QK_MODS_GET_BASIC_KEYCODE(keycode));
+        return false;
+      } else {
+        wait_ms(2);
+        del_mods(QK_MODS_GET_MODS(keycode));
+      }
+    }
+    break;
 
     case DUAL_FUNC_0:
       if (record->tap.count > 0) {
